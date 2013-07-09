@@ -102,7 +102,10 @@ namespace tradesearch.mod
         private bool p2uncommonbool = true;
         private bool p2rarebool = true;
         private bool p2mt3bool = false;
-
+        Texture2D growthres = ResourceManager.LoadTexture("BattleUI/battlegui_icon_growth");
+        Texture2D energyres = ResourceManager.LoadTexture("BattleUI/battlegui_icon_energy");
+        Texture2D orderres = ResourceManager.LoadTexture("BattleUI/battlegui_icon_order");
+        Texture2D decayres = ResourceManager.LoadTexture("BattleUI/battlegui_icon_decay");
         
 
          private GUISkin chatButtonSkin;
@@ -116,6 +119,7 @@ namespace tradesearch.mod
     
 		}
 
+        
 
 
 		public static string GetName ()
@@ -128,6 +132,77 @@ namespace tradesearch.mod
 			return 1;
 		}
 
+        private void addofferedcardsoppo()
+        { // adds offered cards to pxmoddedlists,if they are filtered not in it (otherwise they are not shown in offered window )
+
+            this.p2xtraaddedcards.Clear();
+            //same thing for player2 stuff
+            long[] cardIds = player2.cardIds;
+            for (int i = 0; i < cardIds.Length; i++)
+            {
+                bool found = false;
+                foreach (Card c in this.p2moddedlist) //search Id in p1moddedlist
+                {
+                    if (c.getId() == cardIds[i])
+                    {
+                        found = true;
+                        break;
+                    };
+                }
+
+                if (found == false) //if Id is not in p1moddedlist, add it from orgicardsplayer1
+                {
+                    foreach (Card c in this.orgicardsPlayer2)
+                    {
+                        if (c.getId() == cardIds[i])
+                        {
+                            this.p2xtraaddedcards.Add(c);
+                            break;
+                        };
+
+                    }
+
+                }
+
+            }
+
+        }
+
+        private void addofferedcardsself()
+        { // adds offered cards to pxmoddedlists,if they are filtered not in it (otherwise they are not shown in offered window )
+            this.p1xtraaddedcards.Clear();
+            long[] cardIds = player1.cardIds;
+            for (int i = 0; i < cardIds.Length; i++)
+            {
+                bool found = false;
+                foreach (Card c in this.p1moddedlist) //search Id in p1moddedlist
+                {
+                    if (c.getId() == cardIds[i])
+                    {
+                        found = true;
+                        break;
+                    };
+                }
+
+                if (found == false) //if Id is not in p1moddedlist, add it from orgicardsplayer1
+                {
+                    foreach (Card c in this.orgicardsPlayer1)
+                    {
+                        if (c.getId() == cardIds[i])
+                        {
+                            this.p1xtraaddedcards.Add(c);
+                            break;
+                        };
+
+                    }
+
+                }
+
+            }
+
+            
+
+        }
 
         private void addofferedcards()
         { // adds offered cards to pxmoddedlists,if they are filtered not in it (otherwise they are not shown in offered window )
@@ -192,6 +267,29 @@ namespace tradesearch.mod
 
             }
         
+        }
+
+        private void updatetradeoppo()
+        {
+            p2cards.Clear();
+            this.addofferedcardsoppo();
+            p2cards.AddRange(this.p2moddedlist);
+            p2cards.AddRange(this.p2xtraaddedcards);
+            this.ts.UpdateView(false, this.player1, this.player2);
+
+
+        }
+
+        private void updatetradeself()
+        {
+           
+            p1cards.Clear();
+            this.addofferedcardsself();
+            p1cards.AddRange(this.p1moddedlist);
+            p1cards.AddRange(this.p1xtraaddedcards);
+            this.ts.UpdateView(false, this.player1, this.player2);
+            
+
         }
 
         private void updatetrade() {
@@ -370,7 +468,7 @@ namespace tradesearch.mod
             {
                 if (card.tradable) { 
                     this.p1moddedlist.Add(card);
-                    Console.WriteLine(card.getName());
+                    //Console.WriteLine(card.getName());
                 };
 
             }
@@ -393,7 +491,7 @@ namespace tradesearch.mod
                 if (card.tradable)
                 {
                     this.p1moddedlist.Add(card);
-                    Console.WriteLine(card.getName());
+                    //Console.WriteLine(card.getName());
                 };
 
             }
@@ -439,6 +537,8 @@ namespace tradesearch.mod
             }
 		}
 
+        
+
         public override bool BeforeInvoke(InvocationInfo info, out object returnValue)
         {
 
@@ -446,7 +546,7 @@ namespace tradesearch.mod
 
             if (info.targetMethod.Equals("sendRequest"))
             {
-                Console.WriteLine("sendrequest");
+                //Console.WriteLine("sendrequest");
                 if (info.arguments[0] is RoomChatMessageMessage)
                 {
 
@@ -855,6 +955,8 @@ namespace tradesearch.mod
             return false;
         }
 
+
+
         public override void AfterInvoke (InvocationInfo info, ref object returnValue)
         //public override bool BeforeInvoke(InvocationInfo info, out object returnValue)
         {
@@ -865,11 +967,11 @@ namespace tradesearch.mod
                 
                 this.chatButtonSkin = (GUISkin)typeof(ChatUI).GetField("chatButtonSkin", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(info.target);
 
-                Console.WriteLine("chatlogstyle");
+                //Console.WriteLine("AdjustToResolution");
             }
             if (info.target is TradeSystem && info.targetMethod.Equals("Init"))//update rects
             {
-                Console.WriteLine("INIT ");
+                //Console.WriteLine("INIT ");
                 this.menueheight = (float)Screen.width / 25.6f;
                 Rect outerArea1 = (Rect)typeof(TradeSystem).GetField("outerArea1", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(info.target);
                 Rect outerArea2 = (Rect)typeof(TradeSystem).GetField("outerArea2", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(info.target);
@@ -970,10 +1072,7 @@ namespace tradesearch.mod
 
                 this.outerFrame1 = new ScrollsFrame(this.p1rectsearchmenu).AddNinePatch(ScrollsFrame.Border.DARK_CURVED, NinePatch.Patches.TOP | NinePatch.Patches.TOP_RIGHT | NinePatch.Patches.CENTER | NinePatch.Patches.RIGHT | NinePatch.Patches.BOTTOM | NinePatch.Patches.BOTTOM_RIGHT).AddNinePatch(ScrollsFrame.Border.DARK_SHARP, NinePatch.Patches.TOP_LEFT | NinePatch.Patches.LEFT | NinePatch.Patches.CENTER | NinePatch.Patches.BOTTOM_LEFT);
                 this.outerFrame2 = new ScrollsFrame(this.p2rectsearchmenu).AddNinePatch(ScrollsFrame.Border.DARK_CURVED, NinePatch.Patches.TOP_LEFT | NinePatch.Patches.TOP | NinePatch.Patches.LEFT | NinePatch.Patches.CENTER | NinePatch.Patches.BOTTOM_LEFT | NinePatch.Patches.BOTTOM).AddNinePatch(ScrollsFrame.Border.DARK_SHARP, NinePatch.Patches.TOP_RIGHT | NinePatch.Patches.CENTER | NinePatch.Patches.RIGHT | NinePatch.Patches.BOTTOM_RIGHT);
-                Console.WriteLine(outerArea1.ToString());
-                Console.WriteLine(outerArea2.ToString());
-                Console.WriteLine(p1rectsearchmenu.ToString());
-                Console.WriteLine(p2rectsearchmenu.ToString());
+
 
                 this.p1growthrect = new Rect(p1searchrect.x + p1searchrect.width + 3, p1rectsearchmenu.y + num + 2, p1rectsearchmenu.height - 2f * num - 4, p1rectsearchmenu.height - 2f * num - 4);
                 this.p1orderrect = new Rect(p1growthrect.x + p1growthrect.width + 3, p1rectsearchmenu.y + num + 2, p1rectsearchmenu.height - 2f * num - 4, p1rectsearchmenu.height - 2f * num - 4);
@@ -1001,11 +1100,12 @@ namespace tradesearch.mod
 
             if (info.target is TradeSystem && info.targetMethod.Equals("OnGUI"))//draw menu
             {
-                int state = (int)typeof(TradeSystem).GetField("state", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(info.target);
-                if (state != 0)
+                //int state = (int)typeof(TradeSystem).GetField("state", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(info.target);
+                if (trading)
                 {
                     outerFrame1.Draw();
                     outerFrame2.Draw();
+                    Color dblack = new Color(1f, 1f, 1f, 0.2f);
                     GUI.color = new Color(1f, 1f, 1f, 0.6f);
                     GUI.skin = this.chatButtonSkin;
                     GUI.Box(this.p1searchrect, string.Empty);
@@ -1018,32 +1118,32 @@ namespace tradesearch.mod
 
                     GUI.contentColor = Color.white;
                     GUI.color = Color.white;
-                    if (!p1growthbool) { GUI.color = new Color(1f, 1f, 1f, 0.2f); }
-                    bool p1growthclick = GUI.Button(p1growthrect, ResourceManager.LoadTexture("BattleUI/battlegui_icon_growth"));
+                    if (!p1growthbool) { GUI.color = dblack; }
+                    bool p1growthclick = GUI.Button(p1growthrect, growthres);
                     GUI.color = Color.white;
-                    if (!p1orderbool) { GUI.color = new Color(1f, 1f, 1f, 0.2f); }
-                    bool p1orderclick = GUI.Button(p1orderrect, ResourceManager.LoadTexture("BattleUI/battlegui_icon_order"));
+                    if (!p1orderbool) { GUI.color = dblack; }
+                    bool p1orderclick = GUI.Button(p1orderrect, orderres);
                     GUI.color = Color.white;
-                    if (!p1energybool) { GUI.color = new Color(1f, 1f, 1f, 0.2f); }
-                    bool p1energyclick = GUI.Button(p1energyrect, ResourceManager.LoadTexture("BattleUI/battlegui_icon_energy"));
+                    if (!p1energybool) { GUI.color = dblack; }
+                    bool p1energyclick = GUI.Button(p1energyrect, energyres);
                     GUI.color = Color.white;
-                    if (!p1decaybool) { GUI.color = new Color(1f, 1f, 1f, 0.2f); }
-                    bool p1decayclick = GUI.Button(p1decayrect, ResourceManager.LoadTexture("BattleUI/battlegui_icon_decay"));
+                    if (!p1decaybool) { GUI.color = dblack; }
+                    bool p1decayclick = GUI.Button(p1decayrect, decayres);
                     GUI.color = Color.white;
-                    if (!p1commonbool) { GUI.color = new Color(1f, 1f, 1f, 0.2f); }
+                    if (!p1commonbool) { GUI.color = dblack; }
                     GUI.contentColor = Color.gray;
                     bool p1commonclick = GUI.Button(p1commonrect,"C");
                     GUI.color = Color.white;
-                    if (!p1uncommonbool) { GUI.color = new Color(1f, 1f, 1f, 0.2f); }
+                    if (!p1uncommonbool) { GUI.color = dblack; }
                     GUI.contentColor = Color.white;
                     bool p1uncommonclick = GUI.Button(p1uncommonrect, "U");
                     GUI.color = Color.white;
-                    if (!p1rarebool) { GUI.color = new Color(1f, 1f, 1f, 0.2f); }
+                    if (!p1rarebool) { GUI.color = dblack; }
                     GUI.contentColor = Color.yellow;
                     bool p1rareclick = GUI.Button(p1rarerect, "R");
                     GUI.contentColor = Color.white;
                     GUI.color = Color.white;
-                    if (!p1mt3bool) { GUI.color = new Color(1f, 1f, 1f, 0.2f); }
+                    if (!p1mt3bool) { GUI.color = dblack; }
                     bool p1mt3click = GUI.Button(p1mt3rect, ">3");
                     GUI.color = Color.white;
                     GUI.contentColor = Color.red;
@@ -1070,13 +1170,12 @@ namespace tradesearch.mod
                         p1mt3bool = false;
                     }
 
-                    if (selfcopy != this.selfsearchstring || p1growthclick || p1orderclick || p1energyclick || p1decayclick || p1commonclick || p1uncommonclick || p1rareclick || p1mt3click || p1closeclick) 
+                    //clear p1moddedlist only if necessary
+                    if (selfcopy.Length > this.selfsearchstring.Length || p1closeclick || (p1growthclick && p1growthbool) || (p1orderclick && p1orderbool) || (p1energyclick && p1energybool) || (p1decayclick && p1decaybool) || (p1commonclick && p1commonbool) || (p1uncommonclick && p1uncommonbool) || (p1rareclick && p1rarebool) || p1mt3click)
                     {
-                       
-                            this.p1moddedlist.Clear();
-                            this.p1moddedlist.AddRange(this.orgicardsPlayer1);
-                        
-                       
+                        //Console.WriteLine("delete dings####");
+                        this.p1moddedlist.Clear();
+                        this.p1moddedlist.AddRange(this.orgicardsPlayer1);
                         string[] res = { "", "", "", "" };
                         if (p1decaybool) { res[0] = "decay"; };
                         if (p1energybool) { res[1] = "energy"; };
@@ -1086,7 +1185,10 @@ namespace tradesearch.mod
                         if (p1rarebool) { rare[2] = 2; };
                         if (p1uncommonbool) { rare[1] = 1; };
                         if (p1commonbool) { rare[0] = 0; };
-
+                        if (this.p1mt3bool)
+                        {
+                            this.searchmorethan3();
+                        }
                         this.onlytradeableself();
                         if (this.selfsearchstring != "")
                         {
@@ -1094,43 +1196,75 @@ namespace tradesearch.mod
                         }
                         this.searchforownenergy(res);
                         this.searchforownrarity(rare);
-                        if (this.p1mt3bool)
-                        {
-                            this.searchmorethan3();
-                        }
+                        this.updatetradeself();
 
-                        this.updatetrade();
-                    
+                    }
+                    else
+                    {
+
+                        if (selfcopy != this.selfsearchstring )
+                        {
+
+                            if (this.selfsearchstring != "")
+                            {
+                                this.containsname(this.selfsearchstring);
+                                this.updatetradeself();
+                            }
+                            
+
+                        }
+                        if (p1growthclick || p1orderclick || p1energyclick || p1decayclick )
+                        {
+                            string[] res = { "", "", "", "" };
+                            if (p1decaybool) { res[0] = "decay"; };
+                            if (p1energybool) { res[1] = "energy"; };
+                            if (p1growthbool) { res[2] = "growth"; };
+                            if (p1orderbool) { res[3] = "order"; };
+                            this.searchforownenergy(res);
+                            this.updatetradeself();
+
+                        }
+                        if (p1commonclick || p1uncommonclick || p1rareclick)
+                        {
+
+                            int[] rare = { -1, -1, -1 };
+                            if (p1rarebool) { rare[2] = 2; };
+                            if (p1uncommonbool) { rare[1] = 1; };
+                            if (p1commonbool) { rare[0] = 0; };
+                            this.searchforownrarity(rare);
+                            this.updatetradeself();
+                        }
+                        
                     }
 
                     GUI.contentColor = Color.white;
                     GUI.color = Color.white;
-                    if (!p2growthbool) { GUI.color = new Color(1f, 1f, 1f, 0.2f); }
-                    bool p2growthclick = GUI.Button(p2growthrect, ResourceManager.LoadTexture("BattleUI/battlegui_icon_growth"));
+                    if (!p2growthbool) { GUI.color = dblack; }
+                    bool p2growthclick = GUI.Button(p2growthrect, growthres );
                     GUI.color = Color.white;
-                    if (!p2orderbool) { GUI.color = new Color(1f, 1f, 1f, 0.2f); }
-                    bool p2orderclick = GUI.Button(p2orderrect, ResourceManager.LoadTexture("BattleUI/battlegui_icon_order"));
+                    if (!p2orderbool) { GUI.color = dblack; }
+                    bool p2orderclick = GUI.Button(p2orderrect, orderres);
                     GUI.color = Color.white;
-                    if (!p2energybool) { GUI.color = new Color(1f, 1f, 1f, 0.2f); }
-                    bool p2energyclick = GUI.Button(p2energyrect, ResourceManager.LoadTexture("BattleUI/battlegui_icon_energy"));
+                    if (!p2energybool) { GUI.color = dblack; }
+                    bool p2energyclick = GUI.Button(p2energyrect, energyres);
                     GUI.color = Color.white;
-                    if (!p2decaybool) { GUI.color = new Color(1f, 1f, 1f, 0.2f); }
-                    bool p2decayclick = GUI.Button(p2decayrect, ResourceManager.LoadTexture("BattleUI/battlegui_icon_decay"));
+                    if (!p2decaybool) { GUI.color = dblack; }
+                    bool p2decayclick = GUI.Button(p2decayrect, decayres);
                     GUI.color = Color.white;
-                    if (!p2commonbool) { GUI.color = new Color(1f, 1f, 1f, 0.2f); }
+                    if (!p2commonbool) { GUI.color = dblack; }
                     GUI.contentColor = Color.gray;
                     bool p2commonclick = GUI.Button(p2commonrect, "C");
                     GUI.color = Color.white;
-                    if (!p2uncommonbool) { GUI.color = new Color(1f, 1f, 1f, 0.2f); }
+                    if (!p2uncommonbool) { GUI.color = dblack; }
                     GUI.contentColor = Color.white;
                     bool p2uncommonclick = GUI.Button(p2uncommonrect, "U");
                     GUI.color = Color.white;
-                    if (!p2rarebool) { GUI.color = new Color(1f, 1f, 1f, 0.2f); }
+                    if (!p2rarebool) { GUI.color = dblack; }
                     GUI.contentColor = Color.yellow;
                     bool p2rareclick = GUI.Button(p2rarerect, "R");
                     GUI.contentColor = Color.white;
                     GUI.color = Color.white;
-                    if (!p2mt3bool) { GUI.color = new Color(1f, 1f, 1f, 0.2f); }
+                    if (!p2mt3bool) { GUI.color = dblack; }
                     bool p2mt3click = GUI.Button(p2mt3rect, ">3");
                     GUI.color = Color.white;
                     GUI.contentColor = Color.red;
@@ -1157,6 +1291,77 @@ namespace tradesearch.mod
                         p2mt3bool = false;
                     }
 
+                    //clear p1moddedlist only if necessary
+                    if (oppocopy.Length > this.opposearchstring.Length || p2closeclick || (p2growthclick && p2growthbool) || (p2orderclick && p2orderbool) || (p2energyclick && p2energybool) || (p2decayclick && p2decaybool) || (p2commonclick && p2commonbool) || (p2uncommonclick && p2uncommonbool) || (p2rareclick && p2rarebool) || p2mt3click)
+                    {
+                        //Console.WriteLine("delete dings####");
+                        this.p2moddedlist.Clear();
+                        this.p2moddedlist.AddRange(this.orgicardsPlayer2);
+
+                        string[] res = { "", "", "", "" };
+                        if (p2decaybool) { res[0] = "decay"; };
+                        if (p2energybool) { res[1] = "energy"; };
+                        if (p2growthbool) { res[2] = "growth"; };
+                        if (p2orderbool) { res[3] = "order"; };
+                        int[] rare = { -1, -1, -1 };
+                        if (p2rarebool) { rare[2] = 2; };
+                        if (p2uncommonbool) { rare[1] = 1; };
+                        if (p2commonbool) { rare[0] = 0; };
+
+                        this.onlytradeableoppo();
+                        if (this.opposearchstring != "")
+                        {
+                            this.containsopponentname(this.opposearchstring);
+                        }
+                        this.searchforoppoenergy(res);
+                        this.searchforopporarity(rare);
+                        if (this.p2mt3bool)
+                        {
+                            this.searchmorethan3oppo();
+                        }
+
+                        this.updatetradeoppo();
+
+                    }
+                    else
+                    {
+
+                        if (oppocopy != this.opposearchstring)
+                        {
+
+                            if (this.opposearchstring != "")
+                            {
+                                this.containsopponentname(this.opposearchstring);
+                                this.updatetradeoppo();
+                            }
+
+
+                        }
+                        if (p2growthclick || p2orderclick || p2energyclick || p2decayclick)
+                        {
+                            string[] res = { "", "", "", "" };
+                            if (p2decaybool) { res[0] = "decay"; };
+                            if (p2energybool) { res[1] = "energy"; };
+                            if (p2growthbool) { res[2] = "growth"; };
+                            if (p2orderbool) { res[3] = "order"; };
+                            this.searchforoppoenergy(res);
+                            this.updatetradeoppo();
+
+                        }
+                        if (p2commonclick || p2uncommonclick || p2rareclick)
+                        {
+
+                            int[] rare = { -1, -1, -1 };
+                            if (p2rarebool) { rare[2] = 2; };
+                            if (p2uncommonbool) { rare[1] = 1; };
+                            if (p2commonbool) { rare[0] = 0; };
+                            this.searchforopporarity(rare);
+                            this.updatetradeoppo();
+                        }
+
+                    }
+
+                    /*
                     if (oppocopy != this.opposearchstring || p2growthclick || p2orderclick || p2energyclick || p2decayclick || p2commonclick || p2uncommonclick || p2rareclick || p2mt3click || p2closeclick)
                     {
                         this.p2moddedlist.Clear();
@@ -1186,7 +1391,7 @@ namespace tradesearch.mod
 
                         this.updatetrade();
 
-                    }
+                    }*/
                 }
             }
 
@@ -1237,7 +1442,7 @@ namespace tradesearch.mod
 
             if (info.target is TradeSystem && info.targetMethod.Equals("UpdateView"))
             {
-                Console.WriteLine("updateview"+anzupdates.ToString());
+                //Console.WriteLine("updateview"+anzupdates.ToString());
                 if ((Boolean)info.arguments[0] == false && this.anzupdates<=1)
                 {
                     
@@ -1251,9 +1456,9 @@ namespace tradesearch.mod
                     this.p1moddedlist.AddRange(this.orgicardsPlayer1);
                     this.p2moddedlist.AddRange(this.orgicardsPlayer2);
                     
-                    Console.WriteLine("cards");
-                    foreach (Card c in this.orgicardsPlayer1) { Console.WriteLine(c.getName()); };
-                    foreach (Card c in this.orgicardsPlayer2) { Console.WriteLine(c.getName()); };
+                    //Console.WriteLine("cards");
+                    //foreach (Card c in this.orgicardsPlayer1) { Console.WriteLine(c.getName()); };
+                    //foreach (Card c in this.orgicardsPlayer2) { Console.WriteLine(c.getName()); };
 
 
                     //Rect outerArea1 = (Rect)typeof(Lobby).GetField("outerArea1", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(lbyinfo.target);
