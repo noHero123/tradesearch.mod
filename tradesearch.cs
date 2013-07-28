@@ -537,9 +537,14 @@ namespace tradesearch.mod
             }
 		}
 
-        
 
-        public override bool BeforeInvoke(InvocationInfo info, out object returnValue)
+        public override bool WantsToReplace(InvocationInfo info)
+        {
+            return false;
+        }
+
+
+        public override void ReplaceMethod(InvocationInfo info, out object returnValue)
         {
 
             returnValue = null;
@@ -940,21 +945,17 @@ namespace tradesearch.mod
                             App.ArenaChat.ChatRooms.ChatMessage(joinmessage);
 
                         }
-
-                        return true;
                     }
                 }
-
-
-                
-
             }
-
-
-
-            return false;
         }
 
+        public override void BeforeInvoke(InvocationInfo info)
+        {
+
+            return;
+
+        }
 
 
         public override void AfterInvoke (InvocationInfo info, ref object returnValue)
