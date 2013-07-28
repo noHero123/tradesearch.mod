@@ -540,6 +540,20 @@ namespace tradesearch.mod
 
         public override bool WantsToReplace(InvocationInfo info)
         {
+            if (info.target is Communicator &&  info.targetMethod.Equals("sendRequest"))
+            {
+                if (info.arguments[0] is RoomChatMessageMessage)
+                {
+
+
+                    RoomChatMessageMessage msg = (RoomChatMessageMessage)info.arguments[0];
+                    string[] splitt = msg.text.Split(' ');
+                    if ((splitt[0] == "/trs" || splitt[0] == "\\trs"))
+                    {
+                        return true;
+                    }
+                }
+            }
             return false;
         }
 
@@ -549,7 +563,7 @@ namespace tradesearch.mod
 
             returnValue = null;
 
-            if (info.targetMethod.Equals("sendRequest"))
+            if (info.target is Communicator && info.targetMethod.Equals("sendRequest"))
             {
                 //Console.WriteLine("sendrequest");
                 if (info.arguments[0] is RoomChatMessageMessage)
