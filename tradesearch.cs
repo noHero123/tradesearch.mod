@@ -16,7 +16,6 @@ using JsonFx.Json;
 using System.Text.RegularExpressions;
 
 
-
 namespace tradesearch.mod
 {
 
@@ -28,11 +27,13 @@ namespace tradesearch.mod
         public string name;
     }*/
 
+    
+
     public class tradesearch : BaseMod
 	{
 
         private GUISkin chatSkin;
-
+        private Store store = null;
         private TradeSystem ts = null; // battlemode used for sending the chat
         private Lobby lby = null;
         private InvocationInfo lbyinfo = null;
@@ -47,6 +48,7 @@ namespace tradesearch.mod
         private Boolean searchedself = false;
         private Boolean searchedoppo = false;
         private Boolean trading = false;
+        private Boolean selling = false;
         string orginalp1name = "";
         string orginalp2name = "";
         int orginalint = 0;
@@ -102,6 +104,10 @@ namespace tradesearch.mod
         private bool p2uncommonbool = true;
         private bool p2rarebool = true;
         private bool p2mt3bool = false;
+
+        CardListPopup sellFrame=null;
+        FieldInfo offxInfo;
+
         Texture2D growthres = ResourceManager.LoadTexture("BattleUI/battlegui_icon_growth");
         Texture2D energyres = ResourceManager.LoadTexture("BattleUI/battlegui_icon_energy");
         Texture2D orderres = ResourceManager.LoadTexture("BattleUI/battlegui_icon_order");
@@ -114,7 +120,7 @@ namespace tradesearch.mod
 		//initialize everything here, Game is loaded at this point4
         public tradesearch()
 		{
-
+           offxInfo= typeof(CardListPopup).GetField("offX", BindingFlags.Instance | BindingFlags.NonPublic);
             
     
 		}
@@ -131,6 +137,20 @@ namespace tradesearch.mod
 		{
 			return 1;
 		}
+
+        private void updatestoreself()
+        {
+
+            p1cards.Clear();
+            p1cards.AddRange(this.p1moddedlist);
+            LibraryViewMessage lvm = new LibraryViewMessage();
+            lvm.cards = p1cards.ToArray();
+            lvm.profileId = "test";
+            this.store.handleMessage((Message)lvm);
+
+
+        }
+
 
         private void addofferedcardsoppo()
         { // adds offered cards to pxmoddedlists,if they are filtered not in it (otherwise they are not shown in offered window )
@@ -529,6 +549,12 @@ namespace tradesearch.mod
                   scrollsTypes["TradeSystem"].Methods.GetMethod("SetTradeRoomName", new Type[]{typeof(string)}),
                   scrollsTypes["TradeSystem"].Methods.GetMethod("Init", new Type[]{typeof(float),typeof(float),typeof(float),typeof(float),typeof(RenderTexture)}),
                  scrollsTypes["ChatUI"].Methods.GetMethod("AdjustToResolution")[0],
+                 // store:
+                 scrollsTypes["Store"].Methods.GetMethod("Start")[0],
+                 scrollsTypes["Store"].Methods.GetMethod("OnGUI")[0],
+                 scrollsTypes["Store"].Methods.GetMethod("handleMessage", new Type[]{typeof(Message)}),
+
+
              };
             }
             catch
@@ -971,6 +997,22 @@ namespace tradesearch.mod
 
         }
 
+        private void sliderectsp1(float slider)
+        {
+            this.p1rectsearchmenu.x = this.p1rectsearchmenu.x + slider;
+            this.p1searchrect.x = this.p1searchrect.x + slider;
+
+            this.p1growthrect.x = this.p1growthrect.x + slider;
+            this.p1orderrect.x = this.p1orderrect.x + slider; ;
+            this.p1energyrect.x = this.p1energyrect.x + slider;
+            this.p1decayrect.x = this.p1decayrect.x + slider;
+            this.p1commonrect.x = this.p1commonrect.x + slider;
+            this.p1uncommonrect.x = this.p1uncommonrect.x + slider;
+            this.p1rarerect.x = this.p1rarerect.x + slider;
+            this.p1mt3rect.x = this.p1mt3rect.x + slider;
+            this.p1clearrect.x = this.p1clearrect.x + slider;
+                
+        }
 
         public override void AfterInvoke (InvocationInfo info, ref object returnValue)
         //public override bool BeforeInvoke(InvocationInfo info, out object returnValue)
@@ -984,8 +1026,227 @@ namespace tradesearch.mod
 
                 //Console.WriteLine("AdjustToResolution");
             }
+
+            if (info.target is Store && info.targetMethod.Equals("Start"))//update rects in store
+            {
+                this.store = (Store)info.target;
+                this.sellFrame = (CardListPopup)typeof(Store).GetField("sellFrame", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(info.target);
+                Rect sellrect = new Rect((float)Screen.width * 0.01f, (float)Screen.height * 0.18f, (float)Screen.height * 0.5f, (float)Screen.height * 0.7f);
+                Rect searchFieldRect = new Rect(-10, -10, 1, 1);
+
+                float BOTTOM_MARGIN_EXTRA = (float)Screen.height * 0.047f;
+                float num = 0.005f * (float)Screen.width;
+                Vector4 margins = new Vector4(0f, 0f, 0f, 0f + BOTTOM_MARGIN_EXTRA);
+                float num2 = BOTTOM_MARGIN_EXTRA - 0.01f * (float)Screen.height;
+                float num3 = num2 * 1.28f;
+                Rect outerRect = new Rect((Rect)typeof(CardListPopup).GetField("outerRect", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(sellFrame));
+                Rect innerBGRect= new Rect ((Rect)typeof(CardListPopup).GetField("innerBGRect", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(sellFrame));
+                Rect innerRect = new Rect((Rect)typeof(CardListPopup).GetField("innerRect", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(sellFrame));
+                innerBGRect.height = innerBGRect.height + num3;
+                innerRect.height = innerRect.height + num3;
+                typeof(CardListPopup).GetField("searchFieldRect", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(sellFrame, searchFieldRect);
+                typeof(CardListPopup).GetField("innerBGRect", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(sellFrame, innerBGRect);
+                typeof(CardListPopup).GetField("innerRect", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(sellFrame, innerRect);
+
+                this.p1rectsearchmenu = new Rect(outerRect.x, sellrect.y + sellrect.height + num, (float)Screen.width / 2, this.menueheight);
+                this.p1searchrect = new Rect(p1rectsearchmenu.x + num+2, p1rectsearchmenu.y + num + 2, sellrect.width / 2, p1rectsearchmenu.height - 2f * num - 4);
+                
+                this.p1growthrect = new Rect(p1searchrect.x + p1searchrect.width + 3, p1rectsearchmenu.y + num + 2, p1rectsearchmenu.height - 2f * num - 4, p1rectsearchmenu.height - 2f * num - 4);
+                this.p1orderrect = new Rect(p1growthrect.x + p1growthrect.width + 3, p1rectsearchmenu.y + num + 2, p1rectsearchmenu.height - 2f * num - 4, p1rectsearchmenu.height - 2f * num - 4);
+                this.p1energyrect = new Rect(p1orderrect.x + p1orderrect.width + 3, p1rectsearchmenu.y + num + 2, p1rectsearchmenu.height - 2f * num - 4, p1rectsearchmenu.height - 2f * num - 4);
+                this.p1decayrect = new Rect(p1energyrect.x + p1energyrect.width + 3, p1rectsearchmenu.y + num + 2, p1rectsearchmenu.height - 2f * num - 4, p1rectsearchmenu.height - 2f * num - 4);
+                this.p1commonrect = new Rect(p1decayrect.x + p1decayrect.width + 3, p1rectsearchmenu.y + num + 2, p1rectsearchmenu.height - 2f * num - 4, p1rectsearchmenu.height - 2f * num - 4);
+                this.p1uncommonrect = new Rect(p1commonrect.x + p1commonrect.width + 3, p1rectsearchmenu.y + num + 2, p1rectsearchmenu.height - 2f * num - 4, p1rectsearchmenu.height - 2f * num - 4);
+                this.p1rarerect = new Rect(p1uncommonrect.x + p1uncommonrect.width + 3, p1rectsearchmenu.y + num + 2, p1rectsearchmenu.height - 2f * num - 4, p1rectsearchmenu.height - 2f * num - 4);
+                this.p1mt3rect = new Rect(p1rarerect.x + p1rarerect.width + 3, p1rectsearchmenu.y + num + 2, p1rectsearchmenu.height - 2f * num - 4, p1rectsearchmenu.height - 2f * num - 4);
+                this.p1clearrect = new Rect(p1mt3rect.x + p1mt3rect.width + 3, p1rectsearchmenu.y + num + 2, p1rectsearchmenu.height - 2f * num - 4, p1rectsearchmenu.height - 2f * num - 4);
+                this.p1rectsearchmenu.width = p1clearrect.x + p1clearrect.width + num +2 - p1rectsearchmenu.x;
+
+
+                this.orgicardsPlayer1.Clear();
+
+            }
+
+            if (info.target is Store && info.targetMethod.Equals("handleMessage"))// update orginal cards!
+            {
+
+                Message msg = (Message)info.arguments[0];
+                if (msg is LibraryViewMessage)
+                {
+                    if (!(((LibraryViewMessage)msg).profileId=="test"))
+                    {
+                        this.selfsearchstring = "";
+                        p1growthbool = true;
+                        p1orderbool = true;
+                        p1energybool = true;
+                        p1decaybool = true;
+                        p1commonbool = true;
+                        p1uncommonbool = true;
+                        p1rarebool = true;
+                        p1mt3bool = false;
+                        this.orgicardsPlayer1.Clear();
+                        this.orgicardsPlayer1.AddRange(((LibraryViewMessage)msg).cards);
+                        this.p1moddedlist.Clear();
+                        this.p1moddedlist.AddRange(this.orgicardsPlayer1);
+                    }
+                }
+            }
+
+            if (info.target is Store && info.targetMethod.Equals("OnGUI"))//draw menu
+            {
+                float offset = 0f;
+                if (sellFrame != null)
+                {
+                    float offX = (float)offxInfo.GetValue(sellFrame);
+                    offset = offX;
+                }
+                if (true)
+                {
+                    sliderectsp1(offset);
+                    //outerFrame1.Draw();
+                    GUI.color = new Color(1f, 1f, 1f, 1f);
+                    GUI.skin = this.chatButtonSkin;
+                    GUI.Box(this.p1rectsearchmenu, string.Empty);
+
+                    Color dblack = new Color(1f, 1f, 1f, 0.2f);
+                    GUI.color = new Color(1f, 1f, 1f, 0.6f);
+                    GUI.skin = this.chatButtonSkin;
+                    GUI.Box(this.p1searchrect, string.Empty);
+                    GUI.color = Color.white;
+                    string selfcopy = this.selfsearchstring;
+                    this.selfsearchstring = GUI.TextField(this.p1searchrect, this.selfsearchstring, this.chatLogStyle);
+                    GUI.contentColor = Color.white;
+                    GUI.color = Color.white;
+                    if (!p1growthbool) { GUI.color = dblack; }
+                    bool p1growthclick = GUI.Button(p1growthrect, growthres);
+                    GUI.color = Color.white;
+                    if (!p1orderbool) { GUI.color = dblack; }
+                    bool p1orderclick = GUI.Button(p1orderrect, orderres);
+                    GUI.color = Color.white;
+                    if (!p1energybool) { GUI.color = dblack; }
+                    bool p1energyclick = GUI.Button(p1energyrect, energyres);
+                    GUI.color = Color.white;
+                    if (!p1decaybool) { GUI.color = dblack; }
+                    bool p1decayclick = GUI.Button(p1decayrect, decayres);
+                    GUI.color = Color.white;
+                    if (!p1commonbool) { GUI.color = dblack; }
+                    GUI.contentColor = Color.gray;
+                    bool p1commonclick = GUI.Button(p1commonrect, "C");
+                    GUI.color = Color.white;
+                    if (!p1uncommonbool) { GUI.color = dblack; }
+                    GUI.contentColor = Color.white;
+                    bool p1uncommonclick = GUI.Button(p1uncommonrect, "U");
+                    GUI.color = Color.white;
+                    if (!p1rarebool) { GUI.color = dblack; }
+                    GUI.contentColor = Color.yellow;
+                    bool p1rareclick = GUI.Button(p1rarerect, "R");
+                    GUI.contentColor = Color.white;
+                    GUI.color = Color.white;
+                    if (!p1mt3bool) { GUI.color = dblack; }
+                    bool p1mt3click = GUI.Button(p1mt3rect, ">3");
+                    GUI.color = Color.white;
+                    GUI.contentColor = Color.red;
+                    bool p1closeclick = GUI.Button(p1clearrect, "X");
+
+                    if (p1growthclick) { p1growthbool = !p1growthbool; };
+                    if (p1orderclick) { p1orderbool = !p1orderbool; }
+                    if (p1energyclick) { p1energybool = !p1energybool; };
+                    if (p1decayclick) { p1decaybool = !p1decaybool; }
+                    if (p1commonclick) { p1commonbool = !p1commonbool; };
+                    if (p1uncommonclick) { p1uncommonbool = !p1uncommonbool; }
+                    if (p1rareclick) { p1rarebool = !p1rarebool; };
+                    if (p1mt3click) { p1mt3bool = !p1mt3bool; }
+                    if (p1closeclick)
+                    {
+                        this.selfsearchstring = "";
+                        p1growthbool = true;
+                        p1orderbool = true;
+                        p1energybool = true;
+                        p1decaybool = true;
+                        p1commonbool = true;
+                        p1uncommonbool = true;
+                        p1rarebool = true;
+                        p1mt3bool = false;
+                    }
+
+                    //clear p1moddedlist only if necessary
+                    if (selfcopy.Length > this.selfsearchstring.Length || p1closeclick || (p1growthclick && p1growthbool) || (p1orderclick && p1orderbool) || (p1energyclick && p1energybool) || (p1decayclick && p1decaybool) || (p1commonclick && p1commonbool) || (p1uncommonclick && p1uncommonbool) || (p1rareclick && p1rarebool) || p1mt3click)
+                    {
+                        //Console.WriteLine("delete dings####");
+                        this.p1moddedlist.Clear();
+                        this.p1moddedlist.AddRange(this.orgicardsPlayer1);
+                        string[] res = { "", "", "", "" };
+                        if (p1decaybool) { res[0] = "decay"; };
+                        if (p1energybool) { res[1] = "energy"; };
+                        if (p1growthbool) { res[2] = "growth"; };
+                        if (p1orderbool) { res[3] = "order"; };
+                        int[] rare = { -1, -1, -1 };
+                        if (p1rarebool) { rare[2] = 2; };
+                        if (p1uncommonbool) { rare[1] = 1; };
+                        if (p1commonbool) { rare[0] = 0; };
+                        if (this.p1mt3bool)
+                        {
+                            this.searchmorethan3();
+                        }
+                        //this.onlytradeableself();
+                        if (this.selfsearchstring != "")
+                        {
+                            this.containsname(this.selfsearchstring);
+                        }
+                        this.searchforownenergy(res);
+                        this.searchforownrarity(rare);
+                        this.updatestoreself();
+
+                    }
+                    else
+                    {
+
+                        if (selfcopy != this.selfsearchstring)
+                        {
+
+                            if (this.selfsearchstring != "")
+                            {
+                                this.containsname(this.selfsearchstring);
+                                this.updatestoreself();
+                            }
+
+
+                        }
+                        if (p1growthclick || p1orderclick || p1energyclick || p1decayclick)
+                        {
+                            string[] res = { "", "", "", "" };
+                            if (p1decaybool) { res[0] = "decay"; };
+                            if (p1energybool) { res[1] = "energy"; };
+                            if (p1growthbool) { res[2] = "growth"; };
+                            if (p1orderbool) { res[3] = "order"; };
+                            this.searchforownenergy(res);
+                            this.updatestoreself();
+
+                        }
+                        if (p1commonclick || p1uncommonclick || p1rareclick)
+                        {
+
+                            int[] rare = { -1, -1, -1 };
+                            if (p1rarebool) { rare[2] = 2; };
+                            if (p1uncommonbool) { rare[1] = 1; };
+                            if (p1commonbool) { rare[0] = 0; };
+                            this.searchforownrarity(rare);
+                            this.updatestoreself();
+                        }
+
+                    }
+                    sliderectsp1(-1*offset);
+                }
+                      
+                    
+                }
+            
+
+
+
             if (info.target is TradeSystem && info.targetMethod.Equals("Init"))//update rects
             {
+                Rect searchFieldRect= new Rect(-10,-10,1,1);
                 //Console.WriteLine("INIT ");
                 this.menueheight = (float)Screen.width / 25.6f;
                 Rect outerArea1 = (Rect)typeof(TradeSystem).GetField("outerArea1", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(info.target);
@@ -1037,6 +1298,7 @@ namespace tradesearch.mod
                 typeof(CardListPopup).GetField("innerRect", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(clInventoryP1, innerRect);
                 typeof(CardListPopup).GetField("buttonLeftRect", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(clInventoryP1, buttonLeftRect);
                 typeof(CardListPopup).GetField("buttonRightRect", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(clInventoryP1, buttonRightRect);
+                typeof(CardListPopup).GetField("searchFieldRect", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(clInventoryP1, searchFieldRect);
 
                 //update clinventoryp2
                 outerRect = rectInvP2;
@@ -1050,7 +1312,7 @@ namespace tradesearch.mod
                 typeof(CardListPopup).GetField("innerRect", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(clInventoryP2, innerRect);
                 typeof(CardListPopup).GetField("buttonLeftRect", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(clInventoryP2, buttonLeftRect);
                 typeof(CardListPopup).GetField("buttonRightRect", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(clInventoryP2, buttonRightRect);
-
+                typeof(CardListPopup).GetField("searchFieldRect", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(clInventoryP2, searchFieldRect);
                 //update clOfferP1
                 outerRect = rectOfferP1;
                 innerBGRect = new Rect(outerRect.x + margins.x, outerRect.y + margins.y, outerRect.width - (margins.x + margins.z), outerRect.height - (margins.y + margins.w));
@@ -1063,6 +1325,7 @@ namespace tradesearch.mod
                 typeof(CardListPopup).GetField("innerRect", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(clOfferP1, innerRect);
                 typeof(CardListPopup).GetField("buttonLeftRect", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(clOfferP1, buttonLeftRect);
                 typeof(CardListPopup).GetField("buttonRightRect", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(clOfferP1, buttonRightRect);
+                typeof(CardListPopup).GetField("searchFieldRect", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(clOfferP1, searchFieldRect);
 
                 //update clOfferP2
                 outerRect = rectOfferP2;
@@ -1076,6 +1339,7 @@ namespace tradesearch.mod
                 typeof(CardListPopup).GetField("innerRect", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(clOfferP2, innerRect);
                 typeof(CardListPopup).GetField("buttonLeftRect", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(clOfferP2, buttonLeftRect);
                 typeof(CardListPopup).GetField("buttonRightRect", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(clOfferP2, buttonRightRect);
+                typeof(CardListPopup).GetField("searchFieldRect", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(clOfferP2, searchFieldRect);
 
 
 
