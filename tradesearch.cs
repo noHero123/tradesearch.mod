@@ -32,6 +32,33 @@ namespace tradesearch.mod
     public class tradesearch : BaseMod
 	{
 
+        // fieldinfos:
+        FieldInfo outerArea1field ;
+        FieldInfo outerArea2field ;
+        FieldInfo innerAreafield ;
+        FieldInfo rectInvP1field ;
+        FieldInfo rectOfferP1field ;
+        FieldInfo rectInvP2field ;
+        FieldInfo rectOfferP2field ;
+        FieldInfo outerRectfield;
+        FieldInfo innerBGRectfield;
+        FieldInfo innerRectfield;
+        FieldInfo buttonLeftRectfield;
+        FieldInfo buttonRightRectfield;
+        FieldInfo searchFieldRectfield;
+        FieldInfo clInventoryP1field ;
+        FieldInfo   clOfferP1field ;
+        FieldInfo   clInventoryP2field;
+        FieldInfo clOfferP2field;
+
+        FieldInfo cardsPlayer1field;
+        FieldInfo cardsPlayer2field;
+
+        FieldInfo chatMsgStylefield;
+        FieldInfo chatButtonSkinfield;
+
+
+
         private GUISkin chatSkin;
         private Store store = null;
         private TradeSystem ts = null; // battlemode used for sending the chat
@@ -121,8 +148,32 @@ namespace tradesearch.mod
         public tradesearch()
 		{
            offxInfo= typeof(CardListPopup).GetField("offX", BindingFlags.Instance | BindingFlags.NonPublic);
-            
-    
+           outerArea1field = typeof(TradeSystem).GetField("outerArea1", BindingFlags.Instance | BindingFlags.NonPublic);
+           outerArea2field = typeof(TradeSystem).GetField("outerArea2", BindingFlags.Instance | BindingFlags.NonPublic);
+           innerAreafield = typeof(TradeSystem).GetField("innerArea", BindingFlags.Instance | BindingFlags.NonPublic);
+           rectInvP1field = typeof(TradeSystem).GetField("rectInvP1", BindingFlags.Instance | BindingFlags.NonPublic);
+           rectOfferP1field = typeof(TradeSystem).GetField("rectOfferP1", BindingFlags.Instance | BindingFlags.NonPublic);
+           rectInvP2field = typeof(TradeSystem).GetField("rectInvP2", BindingFlags.Instance | BindingFlags.NonPublic);
+           rectOfferP2field = typeof(TradeSystem).GetField("rectOfferP2", BindingFlags.Instance | BindingFlags.NonPublic);
+
+           outerRectfield=typeof(CardListPopup).GetField("outerRect", BindingFlags.Instance | BindingFlags.NonPublic);
+           innerBGRectfield=typeof(CardListPopup).GetField("innerBGRect", BindingFlags.Instance | BindingFlags.NonPublic);
+           innerRectfield=typeof(CardListPopup).GetField("innerRect", BindingFlags.Instance | BindingFlags.NonPublic);
+           buttonLeftRectfield=typeof(CardListPopup).GetField("buttonLeftRect", BindingFlags.Instance | BindingFlags.NonPublic);
+           buttonRightRectfield=typeof(CardListPopup).GetField("buttonRightRect", BindingFlags.Instance | BindingFlags.NonPublic);
+           searchFieldRectfield=typeof(CardListPopup).GetField("searchFieldRect", BindingFlags.Instance | BindingFlags.NonPublic);
+
+           clInventoryP1field = typeof(TradeSystem).GetField("clInventoryP1", BindingFlags.Instance | BindingFlags.NonPublic);
+           clOfferP1field = typeof(TradeSystem).GetField("clOfferP1", BindingFlags.Instance | BindingFlags.NonPublic);
+           clInventoryP2field = typeof(TradeSystem).GetField("clInventoryP2", BindingFlags.Instance | BindingFlags.NonPublic);
+           clOfferP2field = typeof(TradeSystem).GetField("clOfferP2", BindingFlags.Instance | BindingFlags.NonPublic);
+
+           cardsPlayer1field = typeof(Lobby).GetField("cardsPlayer1", BindingFlags.Instance | BindingFlags.NonPublic);
+           cardsPlayer2field = typeof(Lobby).GetField("cardsPlayer2", BindingFlags.Instance | BindingFlags.NonPublic);
+
+           chatMsgStylefield = typeof(ChatUI).GetField("chatMsgStyle", BindingFlags.Instance | BindingFlags.NonPublic);
+           chatButtonSkinfield = typeof(ChatUI).GetField("chatButtonSkin", BindingFlags.Instance | BindingFlags.NonPublic);
+   
 		}
 
         
@@ -347,12 +398,33 @@ namespace tradesearch.mod
 
             List<Card> temp = new List<Card>(p1moddedlist);
             this.p1moddedlist.Clear();
+            // add the t1 cards first ( the t3 cards at least)
             foreach (Card card in temp)
             {
-                if (card.tradable == true && available[card.getName()] > 3)
+                if (card.tradable == true && available[card.getName()] > 3 && card.level==0)
                 {
                     available[card.getName()] = available[card.getName()] - 1;
                     this.p1moddedlist.Add(card); 
+                };
+
+            }
+            // add the t2 cards
+            foreach (Card card in temp)
+            {
+                if (card.tradable == true && available[card.getName()] > 3 && card.level == 1)
+                {
+                    available[card.getName()] = available[card.getName()] - 1;
+                    this.p1moddedlist.Add(card);
+                };
+
+            }
+            // add the t3 cards 
+            foreach (Card card in temp)
+            {
+                if (card.tradable == true && available[card.getName()] > 3 && card.level >= 2)
+                {
+                    available[card.getName()] = available[card.getName()] - 1;
+                    this.p1moddedlist.Add(card);
                 };
 
             }
@@ -374,9 +446,30 @@ namespace tradesearch.mod
 
             List<Card> temp = new List<Card>(p2moddedlist);
             this.p2moddedlist.Clear();
+            // add the t1 cards first
             foreach (Card card in temp)
             {
-                if (card.tradable == true && available[card.getName()] > 3)
+                if (card.tradable == true && available[card.getName()] > 3 && card.level==0)
+                {
+                    available[card.getName()] = available[card.getName()] - 1;
+                    this.p2moddedlist.Add(card);
+                };
+
+            }
+            // add the t2 cards
+            foreach (Card card in temp)
+            {
+                if (card.tradable == true && available[card.getName()] > 3 && card.level == 1)
+                {
+                    available[card.getName()] = available[card.getName()] - 1;
+                    this.p2moddedlist.Add(card);
+                };
+
+            }
+            // add the t3 cards
+            foreach (Card card in temp)
+            {
+                if (card.tradable == true && available[card.getName()] > 3 && card.level >= 2)
                 {
                     available[card.getName()] = available[card.getName()] - 1;
                     this.p2moddedlist.Add(card);
@@ -1017,18 +1110,20 @@ namespace tradesearch.mod
         public override void AfterInvoke (InvocationInfo info, ref object returnValue)
         //public override bool BeforeInvoke(InvocationInfo info, out object returnValue)
         {
-            
+           
             if (info.target is ChatUI && info.targetMethod.Equals("AdjustToResolution"))//get style
             {
-                this.chatLogStyle = new GUIStyle((GUIStyle)typeof(ChatUI).GetField("chatMsgStyle", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(info.target));
-                
-                this.chatButtonSkin = (GUISkin)typeof(ChatUI).GetField("chatButtonSkin", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(info.target);
+                this.chatLogStyle = new GUIStyle((GUIStyle)chatMsgStylefield.GetValue(info.target));
+
+                this.chatButtonSkin = (GUISkin)chatButtonSkinfield.GetValue(info.target);
 
                 //Console.WriteLine("AdjustToResolution");
             }
 
             if (info.target is Store && info.targetMethod.Equals("Start"))//update rects in store
             {
+                this.menueheight = (float)Screen.width / 25.6f;
+                selfsearchstring = "";
                 this.store = (Store)info.target;
                 this.sellFrame = (CardListPopup)typeof(Store).GetField("sellFrame", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(info.target);
                 Rect sellrect = new Rect((float)Screen.width * 0.01f, (float)Screen.height * 0.18f, (float)Screen.height * 0.5f, (float)Screen.height * 0.7f);
@@ -1039,18 +1134,20 @@ namespace tradesearch.mod
                 Vector4 margins = new Vector4(0f, 0f, 0f, 0f + BOTTOM_MARGIN_EXTRA);
                 float num2 = BOTTOM_MARGIN_EXTRA - 0.01f * (float)Screen.height;
                 float num3 = num2 * 1.28f;
-                Rect outerRect = new Rect((Rect)typeof(CardListPopup).GetField("outerRect", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(sellFrame));
-                Rect innerBGRect= new Rect ((Rect)typeof(CardListPopup).GetField("innerBGRect", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(sellFrame));
-                Rect innerRect = new Rect((Rect)typeof(CardListPopup).GetField("innerRect", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(sellFrame));
+
+
+
+                Rect outerRect = new Rect((Rect)outerRectfield.GetValue(sellFrame));
+                Rect innerBGRect = new Rect((Rect)innerBGRectfield.GetValue(sellFrame));
+                Rect innerRect = new Rect((Rect)innerRectfield.GetValue(sellFrame));
                 innerBGRect.height = innerBGRect.height + num3;
                 innerRect.height = innerRect.height + num3;
-                typeof(CardListPopup).GetField("searchFieldRect", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(sellFrame, searchFieldRect);
-                typeof(CardListPopup).GetField("innerBGRect", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(sellFrame, innerBGRect);
-                typeof(CardListPopup).GetField("innerRect", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(sellFrame, innerRect);
+                searchFieldRectfield.SetValue(sellFrame, searchFieldRect);
+                innerBGRectfield.SetValue(sellFrame, innerBGRect);
+                innerRectfield.SetValue(sellFrame, innerRect);
 
                 this.p1rectsearchmenu = new Rect(outerRect.x, sellrect.y + sellrect.height + num, (float)Screen.width / 2, this.menueheight);
                 this.p1searchrect = new Rect(p1rectsearchmenu.x + num+2, p1rectsearchmenu.y + num + 2, sellrect.width / 2, p1rectsearchmenu.height - 2f * num - 4);
-                
                 this.p1growthrect = new Rect(p1searchrect.x + p1searchrect.width + 3, p1rectsearchmenu.y + num + 2, p1rectsearchmenu.height - 2f * num - 4, p1rectsearchmenu.height - 2f * num - 4);
                 this.p1orderrect = new Rect(p1growthrect.x + p1growthrect.width + 3, p1rectsearchmenu.y + num + 2, p1rectsearchmenu.height - 2f * num - 4, p1rectsearchmenu.height - 2f * num - 4);
                 this.p1energyrect = new Rect(p1orderrect.x + p1orderrect.width + 3, p1rectsearchmenu.y + num + 2, p1rectsearchmenu.height - 2f * num - 4, p1rectsearchmenu.height - 2f * num - 4);
@@ -1249,13 +1346,13 @@ namespace tradesearch.mod
                 Rect searchFieldRect= new Rect(-10,-10,1,1);
                 //Console.WriteLine("INIT ");
                 this.menueheight = (float)Screen.width / 25.6f;
-                Rect outerArea1 = (Rect)typeof(TradeSystem).GetField("outerArea1", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(info.target);
-                Rect outerArea2 = (Rect)typeof(TradeSystem).GetField("outerArea2", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(info.target);
-                Rect innerArea = (Rect)typeof(TradeSystem).GetField("innerArea", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(info.target);
-                Rect rectInvP1 = (Rect)typeof(TradeSystem).GetField("rectInvP1", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(info.target);
-                Rect rectOfferP1 = (Rect)typeof(TradeSystem).GetField("rectOfferP1", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(info.target);
-                Rect rectInvP2 = (Rect)typeof(TradeSystem).GetField("rectInvP2", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(info.target);
-                Rect rectOfferP2 = (Rect)typeof(TradeSystem).GetField("rectOfferP2", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(info.target);
+                Rect outerArea1 = (Rect)outerArea1field.GetValue(info.target);
+                Rect outerArea2 = (Rect)outerArea2field.GetValue(info.target);
+                Rect innerArea = (Rect)innerAreafield.GetValue(info.target);
+                Rect rectInvP1 = (Rect)rectInvP1field.GetValue(info.target);
+                Rect rectOfferP1 = (Rect)rectOfferP1field.GetValue(info.target);
+                Rect rectInvP2 = (Rect)rectInvP2field.GetValue(info.target);
+                Rect rectOfferP2 = (Rect)rectOfferP2field.GetValue(info.target);
                 outerArea1.height = outerArea1.height - this.menueheight;
                 outerArea2.height = outerArea2.height - this.menueheight;
                 innerArea.height = innerArea.height - this.menueheight;
@@ -1266,19 +1363,19 @@ namespace tradesearch.mod
 
                 
 
-                typeof(TradeSystem).GetField("outerArea1", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(info.target, outerArea1);
-                typeof(TradeSystem).GetField("outerArea2", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(info.target, outerArea2);
-                typeof(TradeSystem).GetField("innerArea", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(info.target, innerArea);
-                typeof(TradeSystem).GetField("rectInvP1", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(info.target, rectInvP1);
-                typeof(TradeSystem).GetField("rectOfferP1", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(info.target, rectOfferP1);
-                typeof(TradeSystem).GetField("rectInvP2", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(info.target, rectInvP2);
-                typeof(TradeSystem).GetField("rectOfferP2", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(info.target, rectOfferP2);
+                outerArea1field.SetValue(info.target, outerArea1);
+                outerArea2field.SetValue(info.target, outerArea2);
+                innerAreafield.SetValue(info.target, innerArea);
+                rectInvP1field.SetValue(info.target, rectInvP1);
+                rectOfferP1field.SetValue(info.target, rectOfferP1);
+                rectInvP2field.SetValue(info.target, rectInvP2);
+                rectOfferP2field.SetValue(info.target, rectOfferP2);
 
 
-                CardListPopup clInventoryP1 = (CardListPopup)typeof(TradeSystem).GetField("clInventoryP1", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(info.target);
-                CardListPopup clOfferP1 = (CardListPopup)typeof(TradeSystem).GetField("clOfferP1", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(info.target);
-                CardListPopup clInventoryP2 = (CardListPopup)typeof(TradeSystem).GetField("clInventoryP2", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(info.target);
-                CardListPopup clOfferP2 = (CardListPopup)typeof(TradeSystem).GetField("clOfferP2", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(info.target);
+                CardListPopup clInventoryP1 = (CardListPopup)clInventoryP1field.GetValue(info.target);
+                CardListPopup clOfferP1 = (CardListPopup)clOfferP1field.GetValue(info.target);
+                CardListPopup clInventoryP2 = (CardListPopup)clInventoryP2field.GetValue(info.target);
+                CardListPopup clOfferP2 = (CardListPopup)clOfferP2field.GetValue(info.target);
                 
                 
                 float BOTTOM_MARGIN_EXTRA = (float)Screen.height * 0.047f;
@@ -1293,12 +1390,12 @@ namespace tradesearch.mod
                 Rect buttonLeftRect = new Rect(innerRect.x + innerRect.width * 0.03f, innerBGRect.yMax + num2 * 0.28f, innerRect.width * 0.45f, num2);
                 Rect buttonRightRect = new Rect(innerRect.xMax - innerRect.width * 0.48f, innerBGRect.yMax + num2 * 0.28f, innerRect.width * 0.45f, num2);
 
-                typeof(CardListPopup).GetField("outerRect", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(clInventoryP1, outerRect);
-                typeof(CardListPopup).GetField("innerBGRect", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(clInventoryP1, innerBGRect);
-                typeof(CardListPopup).GetField("innerRect", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(clInventoryP1, innerRect);
-                typeof(CardListPopup).GetField("buttonLeftRect", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(clInventoryP1, buttonLeftRect);
-                typeof(CardListPopup).GetField("buttonRightRect", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(clInventoryP1, buttonRightRect);
-                typeof(CardListPopup).GetField("searchFieldRect", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(clInventoryP1, searchFieldRect);
+                outerRectfield.SetValue(clInventoryP1, outerRect);
+                innerBGRectfield.SetValue(clInventoryP1, innerBGRect);
+                innerRectfield.SetValue(clInventoryP1, innerRect);
+                buttonLeftRectfield.SetValue(clInventoryP1, buttonLeftRect);
+                buttonRightRectfield.SetValue(clInventoryP1, buttonRightRect);
+                searchFieldRectfield.SetValue(clInventoryP1, searchFieldRect);
 
                 //update clinventoryp2
                 outerRect = rectInvP2;
@@ -1307,12 +1404,13 @@ namespace tradesearch.mod
                 buttonLeftRect = new Rect(innerRect.x + innerRect.width * 0.03f, innerBGRect.yMax + num2 * 0.28f, innerRect.width * 0.45f, num2);
                 buttonRightRect = new Rect(innerRect.xMax - innerRect.width * 0.48f, innerBGRect.yMax + num2 * 0.28f, innerRect.width * 0.45f, num2);
 
-                typeof(CardListPopup).GetField("outerRect", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(clInventoryP2, outerRect);
-                typeof(CardListPopup).GetField("innerBGRect", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(clInventoryP2, innerBGRect);
-                typeof(CardListPopup).GetField("innerRect", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(clInventoryP2, innerRect);
-                typeof(CardListPopup).GetField("buttonLeftRect", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(clInventoryP2, buttonLeftRect);
-                typeof(CardListPopup).GetField("buttonRightRect", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(clInventoryP2, buttonRightRect);
-                typeof(CardListPopup).GetField("searchFieldRect", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(clInventoryP2, searchFieldRect);
+                outerRectfield.SetValue(clInventoryP2, outerRect);
+                innerBGRectfield.SetValue(clInventoryP2, innerBGRect);
+                innerRectfield.SetValue(clInventoryP2, innerRect);
+                buttonLeftRectfield.SetValue(clInventoryP2, buttonLeftRect);
+                buttonRightRectfield.SetValue(clInventoryP2, buttonRightRect);
+                searchFieldRectfield.SetValue(clInventoryP2, searchFieldRect);
+
                 //update clOfferP1
                 outerRect = rectOfferP1;
                 innerBGRect = new Rect(outerRect.x + margins.x, outerRect.y + margins.y, outerRect.width - (margins.x + margins.z), outerRect.height - (margins.y + margins.w));
@@ -1320,12 +1418,12 @@ namespace tradesearch.mod
                 buttonLeftRect = new Rect(innerRect.x + innerRect.width * 0.03f, innerBGRect.yMax + num2 * 0.28f, innerRect.width * 0.45f, num2);
                 buttonRightRect = new Rect(innerRect.xMax - innerRect.width * 0.48f, innerBGRect.yMax + num2 * 0.28f, innerRect.width * 0.45f, num2);
 
-                typeof(CardListPopup).GetField("outerRect", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(clOfferP1, outerRect);
-                typeof(CardListPopup).GetField("innerBGRect", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(clOfferP1, innerBGRect);
-                typeof(CardListPopup).GetField("innerRect", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(clOfferP1, innerRect);
-                typeof(CardListPopup).GetField("buttonLeftRect", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(clOfferP1, buttonLeftRect);
-                typeof(CardListPopup).GetField("buttonRightRect", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(clOfferP1, buttonRightRect);
-                typeof(CardListPopup).GetField("searchFieldRect", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(clOfferP1, searchFieldRect);
+                outerRectfield.SetValue(clOfferP1, outerRect);
+                innerBGRectfield.SetValue(clOfferP1, innerBGRect);
+                innerRectfield.SetValue(clOfferP1, innerRect);
+                buttonLeftRectfield.SetValue(clOfferP1, buttonLeftRect);
+                buttonRightRectfield.SetValue(clOfferP1, buttonRightRect);
+                searchFieldRectfield.SetValue(clOfferP1, searchFieldRect);
 
                 //update clOfferP2
                 outerRect = rectOfferP2;
@@ -1334,14 +1432,12 @@ namespace tradesearch.mod
                 buttonLeftRect = new Rect(innerRect.x + innerRect.width * 0.03f, innerBGRect.yMax + num2 * 0.28f, innerRect.width * 0.45f, num2);
                 buttonRightRect = new Rect(innerRect.xMax - innerRect.width * 0.48f, innerBGRect.yMax + num2 * 0.28f, innerRect.width * 0.45f, num2);
 
-                typeof(CardListPopup).GetField("outerRect", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(clOfferP2, outerRect);
-                typeof(CardListPopup).GetField("innerBGRect", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(clOfferP2, innerBGRect);
-                typeof(CardListPopup).GetField("innerRect", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(clOfferP2, innerRect);
-                typeof(CardListPopup).GetField("buttonLeftRect", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(clOfferP2, buttonLeftRect);
-                typeof(CardListPopup).GetField("buttonRightRect", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(clOfferP2, buttonRightRect);
-                typeof(CardListPopup).GetField("searchFieldRect", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(clOfferP2, searchFieldRect);
-
-
+                outerRectfield.SetValue(clOfferP2, outerRect);
+                innerBGRectfield.SetValue(clOfferP2, innerBGRect);
+                innerRectfield.SetValue(clOfferP2, innerRect);
+                buttonLeftRectfield.SetValue(clOfferP2, buttonLeftRect);
+                buttonRightRectfield.SetValue(clOfferP2, buttonRightRect);
+                searchFieldRectfield.SetValue(clOfferP2, searchFieldRect);
 
                 this.p1rectsearchmenu = new Rect(outerArea1.x, outerArea1.y + outerArea1.height, outerArea1.width, this.menueheight);
                 this.p2rectsearchmenu = new Rect(outerArea2.x, outerArea2.y + outerArea2.height, outerArea2.width, this.menueheight);
@@ -1681,8 +1777,8 @@ namespace tradesearch.mod
                 {
                     lby = (Lobby)info.target;
                     lbyinfo = info;
-                    this.p1cards = (List<Card>)typeof(Lobby).GetField("cardsPlayer1", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(lbyinfo.target);
-                    this.p2cards = (List<Card>)typeof(Lobby).GetField("cardsPlayer2", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(lbyinfo.target);
+                    this.p1cards = (List<Card>)cardsPlayer1field.GetValue(lbyinfo.target);
+                    this.p2cards = (List<Card>)cardsPlayer2field.GetValue(lbyinfo.target);
                     anzupdates = 0;
                     this.searchedself = false;
                     this.searchedoppo = false;
@@ -1712,6 +1808,8 @@ namespace tradesearch.mod
                     this.orginalp1name = (string)info.arguments[2];
                     this.orginalp2name = (string)info.arguments[3];
                     this.orginalint = (int)info.arguments[4];
+                    this.selfsearchstring = "";
+                    this.opposearchstring = "";
                     
 
                 }
