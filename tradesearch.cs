@@ -139,6 +139,9 @@ namespace tradesearch.mod
         Texture2D energyres = ResourceManager.LoadTexture("BattleUI/battlegui_icon_energy");
         Texture2D orderres = ResourceManager.LoadTexture("BattleUI/battlegui_icon_order");
         Texture2D decayres = ResourceManager.LoadTexture("BattleUI/battlegui_icon_decay");
+
+        CardFilter p1cf = CardFilter.from("");
+        CardFilter p2cf = CardFilter.from("");
         
 
          private GUISkin chatButtonSkin;
@@ -186,7 +189,7 @@ namespace tradesearch.mod
 
 		public static int GetVersion ()
 		{
-			return 1;
+			return 5;
 		}
 
         private void updatestoreself()
@@ -553,9 +556,11 @@ namespace tradesearch.mod
         {
             List<Card> temp = new List<Card>(p1moddedlist);
             this.p1moddedlist.Clear();
+            List<Card> temp2 = this.p1cf.getFiltered(orgicardsPlayer1);
             foreach (Card card in temp)//this.orgicardsPlayer1)
             {
-                if (card.getName().ToLower().Contains(name.ToLower())) { this.p1moddedlist.Add(card); };
+                if (temp2.Contains(card)) this.p1moddedlist.Add(card); 
+                //if (card.getName().ToLower().Contains(name.ToLower())) { this.p1moddedlist.Add(card); };
 
             }
 
@@ -565,9 +570,11 @@ namespace tradesearch.mod
         {
             List<Card> temp = new List<Card>(p2moddedlist);
             this.p2moddedlist.Clear();
+            List<Card> temp2 = this.p2cf.getFiltered(orgicardsPlayer2);
             foreach (Card card in temp)//this.orgicardsPlayer2)
             {
-                if (card.getName().ToLower().Contains(name.ToLower())) { this.p2moddedlist.Add(card); };
+                if (temp2.Contains(card)) this.p2moddedlist.Add(card); 
+                //if (card.getName().ToLower().Contains(name.ToLower())) { this.p2moddedlist.Add(card); };
 
             }
 
@@ -1145,7 +1152,7 @@ namespace tradesearch.mod
                 searchFieldRectfield.SetValue(sellFrame, searchFieldRect);
                 innerBGRectfield.SetValue(sellFrame, innerBGRect);
                 innerRectfield.SetValue(sellFrame, innerRect);
-
+                this.p1cf = CardFilter.from("");
                 this.p1rectsearchmenu = new Rect(outerRect.x, sellrect.y + sellrect.height + num, (float)Screen.width / 2, this.menueheight);
                 this.p1searchrect = new Rect(p1rectsearchmenu.x + num+2, p1rectsearchmenu.y + num + 2, sellrect.width / 2, p1rectsearchmenu.height - 2f * num - 4);
                 this.p1growthrect = new Rect(p1searchrect.x + p1searchrect.width + 3, p1rectsearchmenu.y + num + 2, p1rectsearchmenu.height - 2f * num - 4, p1rectsearchmenu.height - 2f * num - 4);
@@ -1256,6 +1263,7 @@ namespace tradesearch.mod
                     if (p1closeclick)
                     {
                         this.selfsearchstring = "";
+                        this.p1cf = CardFilter.from("");
                         p1growthbool = true;
                         p1orderbool = true;
                         p1energybool = true;
@@ -1267,7 +1275,7 @@ namespace tradesearch.mod
                     }
 
                     //clear p1moddedlist only if necessary
-                    if (selfcopy.Length > this.selfsearchstring.Length || p1closeclick || (p1growthclick && p1growthbool) || (p1orderclick && p1orderbool) || (p1energyclick && p1energybool) || (p1decayclick && p1decaybool) || (p1commonclick && p1commonbool) || (p1uncommonclick && p1uncommonbool) || (p1rareclick && p1rarebool) || p1mt3click)
+                    if (selfcopy != this.selfsearchstring || p1closeclick || (p1growthclick && p1growthbool) || (p1orderclick && p1orderbool) || (p1energyclick && p1energybool) || (p1decayclick && p1decaybool) || (p1commonclick && p1commonbool) || (p1uncommonclick && p1uncommonbool) || (p1rareclick && p1rarebool) || p1mt3click)
                     {
                         //Console.WriteLine("delete dings####");
                         this.p1moddedlist.Clear();
@@ -1286,8 +1294,10 @@ namespace tradesearch.mod
                             this.searchmorethan3();
                         }
                         //this.onlytradeableself();
+                        this.p1cf = CardFilter.from("");
                         if (this.selfsearchstring != "")
                         {
+                            this.p1cf = CardFilter.from(this.selfsearchstring);
                             this.containsname(this.selfsearchstring);
                         }
                         this.searchforownenergy(res);
@@ -1300,9 +1310,10 @@ namespace tradesearch.mod
 
                         if (selfcopy != this.selfsearchstring)
                         {
-
+                            this.p1cf = CardFilter.from("");
                             if (this.selfsearchstring != "")
                             {
+                                this.p1cf = CardFilter.from(this.selfsearchstring);
                                 this.containsname(this.selfsearchstring);
                                 this.updatestoreself();
                             }
@@ -1360,7 +1371,8 @@ namespace tradesearch.mod
                 rectOfferP1.height = rectOfferP1.height - this.menueheight;
                 rectInvP2.height = rectInvP2.height - this.menueheight;
                 rectOfferP2.height = rectOfferP2.height - this.menueheight;
-
+                this.p1cf = CardFilter.from("");
+                this.p2cf = CardFilter.from("");
                 
 
                 outerArea1field.SetValue(info.target, outerArea1);
@@ -1535,6 +1547,7 @@ namespace tradesearch.mod
                     if (p1closeclick) 
                     {
                         this.selfsearchstring = "";
+                        this.p1cf = CardFilter.from("");
                         p1growthbool = true;
                         p1orderbool = true;
                         p1energybool = true;
@@ -1546,7 +1559,7 @@ namespace tradesearch.mod
                     }
 
                     //clear p1moddedlist only if necessary
-                    if (selfcopy.Length > this.selfsearchstring.Length || p1closeclick || (p1growthclick && p1growthbool) || (p1orderclick && p1orderbool) || (p1energyclick && p1energybool) || (p1decayclick && p1decaybool) || (p1commonclick && p1commonbool) || (p1uncommonclick && p1uncommonbool) || (p1rareclick && p1rarebool) || p1mt3click)
+                    if (selfcopy != this.selfsearchstring || p1closeclick || (p1growthclick && p1growthbool) || (p1orderclick && p1orderbool) || (p1energyclick && p1energybool) || (p1decayclick && p1decaybool) || (p1commonclick && p1commonbool) || (p1uncommonclick && p1uncommonbool) || (p1rareclick && p1rarebool) || p1mt3click)
                     {
                         //Console.WriteLine("delete dings####");
                         this.p1moddedlist.Clear();
@@ -1565,8 +1578,10 @@ namespace tradesearch.mod
                             this.searchmorethan3();
                         }
                         this.onlytradeableself();
+                        this.p1cf = CardFilter.from("");
                         if (this.selfsearchstring != "")
                         {
+                            this.p1cf = CardFilter.from(this.selfsearchstring);
                             this.containsname(this.selfsearchstring);
                         }
                         this.searchforownenergy(res);
@@ -1579,9 +1594,10 @@ namespace tradesearch.mod
 
                         if (selfcopy != this.selfsearchstring )
                         {
-
+                            this.p1cf = CardFilter.from("");
                             if (this.selfsearchstring != "")
                             {
+                                this.p1cf = CardFilter.from(this.selfsearchstring);
                                 this.containsname(this.selfsearchstring);
                                 this.updatetradeself();
                             }
@@ -1656,6 +1672,7 @@ namespace tradesearch.mod
                     if (p2closeclick)
                     {
                         this.opposearchstring = "";
+                        this.p2cf = CardFilter.from("");
                         p2growthbool = true;
                         p2orderbool = true;
                         p2energybool = true;
@@ -1667,7 +1684,7 @@ namespace tradesearch.mod
                     }
 
                     //clear p1moddedlist only if necessary
-                    if (oppocopy.Length > this.opposearchstring.Length || p2closeclick || (p2growthclick && p2growthbool) || (p2orderclick && p2orderbool) || (p2energyclick && p2energybool) || (p2decayclick && p2decaybool) || (p2commonclick && p2commonbool) || (p2uncommonclick && p2uncommonbool) || (p2rareclick && p2rarebool) || p2mt3click)
+                    if (oppocopy != this.opposearchstring || p2closeclick || (p2growthclick && p2growthbool) || (p2orderclick && p2orderbool) || (p2energyclick && p2energybool) || (p2decayclick && p2decaybool) || (p2commonclick && p2commonbool) || (p2uncommonclick && p2uncommonbool) || (p2rareclick && p2rarebool) || p2mt3click)
                     {
                         //Console.WriteLine("delete dings####");
                         this.p2moddedlist.Clear();
@@ -1684,8 +1701,10 @@ namespace tradesearch.mod
                         if (p2commonbool) { rare[0] = 0; };
 
                         this.onlytradeableoppo();
+                        this.p2cf = CardFilter.from("");
                         if (this.opposearchstring != "")
                         {
+                            this.p2cf = CardFilter.from(this.opposearchstring);
                             this.containsopponentname(this.opposearchstring);
                         }
                         this.searchforoppoenergy(res);
@@ -1703,9 +1722,10 @@ namespace tradesearch.mod
 
                         if (oppocopy != this.opposearchstring)
                         {
-
+                            this.p2cf = CardFilter.from("");
                             if (this.opposearchstring != "")
                             {
+                                this.p2cf = CardFilter.from(this.opposearchstring);
                                 this.containsopponentname(this.opposearchstring);
                                 this.updatetradeoppo();
                             }
