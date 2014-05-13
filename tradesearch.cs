@@ -189,7 +189,7 @@ namespace tradesearch.mod
 
 		public static int GetVersion ()
 		{
-			return 5;
+			return 6;
 		}
 
         private void updatestoreself()
@@ -199,7 +199,7 @@ namespace tradesearch.mod
             p1cards.AddRange(this.p1moddedlist);
             LibraryViewMessage lvm = new LibraryViewMessage();
             lvm.cards = p1cards.ToArray();
-            lvm.profileId = "test";
+            lvm.profileId = 123;
             this.store.handleMessage((Message)lvm);
 
 
@@ -1177,7 +1177,7 @@ namespace tradesearch.mod
                 Message msg = (Message)info.arguments[0];
                 if (msg is LibraryViewMessage)
                 {
-                    if (!(((LibraryViewMessage)msg).profileId=="test"))
+                    if (!(((LibraryViewMessage)msg).profileId==123))
                     {
                         this.selfsearchstring = "";
                         p1growthbool = true;
